@@ -96,7 +96,7 @@ for (sd in prior_sds) {
 }
 
 # Save output to file
-write.csv(results, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/BAYESIAN_STAN.csv", row.names = FALSE)
+write.csv(results, file.path(A, "BAYESIAN_STAN.csv"), row.names = FALSE)
 message("All models completed and results saved to 'BAYESIAN_STAN.csv'.")
 
 print(results)
