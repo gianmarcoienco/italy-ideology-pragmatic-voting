@@ -1,17 +1,11 @@
-CLEARCOND()
+# ==========================================================
+# controls_first.R
+# Prepares municipality-level control variables for the
+# first-stage regression using ISTAT data.
+# Output: FIRST_STAGE dataset
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"))
 
 # Demographics
 pop <- read.csv("1_population.csv")
@@ -224,4 +218,4 @@ colnames(FIRST_STAGE)[2] <- "COD_COM"
 
 SAVE(dfx = FIRST_STAGE, pattdir = A)
 
-write.csv(FIRST_STAGE, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/FIRST_STAGE.csv", row.names = F)
+write.csv(FIRST_STAGE, file.path(A,"FIRST_STAGE.csv"), row.names = F)
