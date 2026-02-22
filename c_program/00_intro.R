@@ -43,16 +43,20 @@ VISUALSEP <- "*********************************************"
 
 ########################
 # ensure max RAM allocation to R
-memory.limit(size=32000) #guessed for 32 RAM
+if (.Platform$OS.type == "windows") {
+  memory.limit(size = 32000)
+}
 
 ########################
 #ensure in mainfolder there exists a subfolder Temp 
 #NOT emptied here in case it already exists, resetting is optional 
-dir.create(paste0(A,"temp",sep="/")) #just a warning if folder already exists
+if (dir.exists(A)) {
+  dir.create(file.path(A, "temp"), showWarnings = FALSE)
+} #just a warning if folder already exists
 
 ########################
 # load index of programs (packages / libraries + myfunctions)
-source(paste0(ADO,"00_PROGRAMS.R"), echo=TRUE, max=1000)  
+source(file.path(ADO, "00_PROGRAMS.R"), echo = TRUE, max = 1000)  
 
 ########################
 # date and time settings
