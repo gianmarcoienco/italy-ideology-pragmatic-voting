@@ -8,22 +8,28 @@ The project involves substantial data harmonization, including manual resolution
 
 ## Repository structure
 
-- 00_config.R: Defines paths and loads required packages and user-written functions.
+- `00_config.R`  
+  Defines paths and loads required packages and user-written functions.
 
-- 00_run_project.R: Entry point to run the full data construction pipeline.
+- `00_run_project.R`  
+  Entry point to run the full data construction pipeline.
 
-- c_program/: Core scripts for data construction and analysis:
+- `c_program/`  
+  Core scripts for data construction and analysis:
   - party classification
   - historical data processing and harmonization
   - national and municipal ideology measures
   - control variables construction
   - IV analysis and robustness checks
 
-- 00_r_userwritten/: Custom functions used throughout the project (e.g. municipality harmonization, ideology construction).
+- `00_r_userwritten/`  
+  Custom functions used throughout the project (e.g. municipality harmonization, ideology construction, data I/O).
 
-- a_microdata/: Intended location for raw and intermediate datasets (not included).
+- `a_microdata/`  
+  Intended location for raw and intermediate datasets (not included).
 
-- d_results/:  Output folder for tables, figures, and logs.
+- `d_results/`  
+  Output folder for tables, figures, and logs.
 
 ## Data availability
 
