@@ -476,7 +476,12 @@ ggplot(ideology_final2, aes(x = rel_polarization_index)) +
 
 ### MAPPING ####
 
-italy_muni_2019 <- read_sf("/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/mapItaly19/Com01012019/Com01012019_WGS84.shp")
+italy_muni_2019 <- read_sf(file.path(
+  A,
+  "mapItaly19",
+  "Com01012019",
+  "Com01012019_WGS84.shp"
+))
 
 codes <- read.csv("CODES_ISTAT.csv")
 
@@ -571,7 +576,11 @@ summary(HIST_IDEOLOGY$ABS_POLAR)
 
 SAVE(dfx = map_ready, pattdir = A)
 
-write.csv(HIST_IDEOLOGY, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/HIST_IDEOLOGY.csv", row.names = F)
+write.csv(
+  HIST_IDEOLOGY,
+  file.path(A, "HIST_IDEOLOGY.csv"),
+  row.names = FALSE
+)
 
 # # 1. Absolute Ideology Map
 # ggplot(map_ready) +
