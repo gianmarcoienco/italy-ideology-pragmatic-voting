@@ -1,18 +1,3 @@
-CLEARCOND()
-
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
-
 data <- read.csv("IV_DATA_small.csv")
 
 quantile(data$ABS_POLAR_NAT)
