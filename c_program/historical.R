@@ -1,17 +1,12 @@
-CLEARCOND()
+# ==========================================================
+# historical.R
+# Processes historical electoral data (1948–1981), harmonizes
+# municipality names, and constructs ideology and polarization
+# indices at the municipality level.
+# Output: HIST_IDEOLOGY dataset
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"), exists("ADO"))
 
 h1948 <- read.csv("1948.csv")
 h1953 <- read.csv("1953.csv")
@@ -108,7 +103,7 @@ ideology_1972 %>%
 
 ### 1974 DIVORCE ###
 
-# Step 1: Collapse and clean
+# 1: Collapse and clean
 r1974_collapsed <- r1974 %>%
   mutate(
     COMUNE = toupper(COMUNE),
@@ -125,7 +120,7 @@ r1974_collapsed <- r1974 %>%
     .groups = "drop"
   )
 
-# Step 2: Clean and compute municipality-level ideology
+# 2: Clean and compute municipality-level ideology
 r1974_clean <- r1974_collapsed %>%
   filter(!is.na(SI), !is.na(NO), (SI + NO) > 0) %>%
   mutate(
@@ -134,7 +129,7 @@ r1974_clean <- r1974_collapsed %>%
     abs_polarization_1974 = abs(SI - NO) / valid_votes  # Distance from 50-50
   )
 
-# Step 3: Compute province-level ideology and polarization
+# 3: Compute province-level ideology and polarization
 province_1974 <- r1974_clean %>%
   group_by(PROVINCIA) %>%
   summarise(
@@ -146,7 +141,7 @@ province_1974 <- r1974_clean %>%
     .groups = "drop"
   )
 
-# Step 4: Compute relative measures
+# 4: Compute relative measures
 r1974_processed <- r1974_clean %>%
   left_join(province_1974, by = "PROVINCIA") %>%
   mutate(
@@ -162,7 +157,7 @@ r1974_processed <- r1974_clean %>%
 
 ### 1981 ABORTION ###
 
-# Step 1: Collapse and clean
+# 1: Collapse and clean
 r1981_collapsed <- r1981 %>%
   filter(NUM_REFERENDUM == 5) %>%  # 5 = Abortion Referendum
   mutate(
@@ -180,7 +175,7 @@ r1981_collapsed <- r1981 %>%
     .groups = "drop"
   )
 
-# Step 2: Compute municipality-level ideology
+# 2: Compute municipality-level ideology
 r1981_clean <- r1981_collapsed %>%
   filter(!is.na(SI), !is.na(NO), (SI + NO) > 0) %>%
   mutate(
@@ -189,7 +184,7 @@ r1981_clean <- r1981_collapsed %>%
     abs_polarization_1981 = abs(SI - NO) / valid_votes
   )
 
-# Step 3: Compute province-level averages
+# 3: Compute province-level averages
 province_1981 <- r1981_clean %>%
   group_by(PROVINCIA) %>%
   summarise(
@@ -201,7 +196,7 @@ province_1981 <- r1981_clean %>%
     .groups = "drop"
   )
 
-# Step 4: Merge and compute relative values
+# 4: Merge and compute relative values
 r1981_processed <- r1981_clean %>%
   left_join(province_1981, by = "PROVINCIA") %>%
   mutate(
@@ -603,31 +598,6 @@ write.csv(HIST_IDEOLOGY, "/Users/gianmarcoienco/Desktop/personal/projects/projec
 #     plot.caption = element_text(size = 9)
 #   )
 # 
-# # 2. Relative Ideology Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = rel_index), color = NA) +
-#   scale_fill_gradient2(
-#     low = "red",
-#     mid = "white",
-#     high = "blue",
-#     midpoint = 0,
-#     limits = c(-max(abs(map_ready$rel_index), na.rm = TRUE),
-#                max(abs(map_ready$rel_index), na.rm = TRUE)),
-#     name = "Conservative - Progressive\n(Relative to Province)"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Relative Ideological Orientation of Municipalities",
-#     subtitle = "Red = Progressive, Blue = Conservative (relative to provincial average)",
-#     caption = "Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
 # # 3. Absolute Polarization Map
 # ggplot(map_ready) +
 #   geom_sf(aes(fill = abs_polarization_index), color = NA) +
@@ -648,190 +618,5 @@ write.csv(HIST_IDEOLOGY, "/Users/gianmarcoienco/Desktop/personal/projects/projec
 #     plot.subtitle = element_text(size = 13),
 #     plot.caption = element_text(size = 9)
 #   )
-# 
-# # 4. Relative Polarization Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = rel_polarization_index), color = NA) +
-#   scale_fill_gradient(
-#     low = "white",
-#     high = "darkblue",
-#     name = "Relative Ideological\nPolarization"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Municipal Ideological Polarization (Relative)",
-#     subtitle = "White = Similar to Province, Dark Blue = More/Atypical Polarization",
-#     caption = "Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# ## Nonlinear re-scaling ##
-# 
-# # 1a. Absolute Ideology Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = abs_index_sqrt), color = NA) +
-#   scale_fill_gradient2(
-#     low = "red",
-#     mid = "white",
-#     high = "blue",
-#     midpoint = 0,
-#     limits = c(-max(abs(map_ready$abs_index_sqrt), na.rm = TRUE),
-#                max(abs(map_ready$abs_index_sqrt), na.rm = TRUE)),
-#     oob = scales::squish,
-#     name = "Conservative - Progressive\n(Absolute Index)"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Absolute Ideological Orientation of Municipalities",
-#     subtitle = "Red = Progressive, Blue = Conservative",
-#     caption = "Nonlinear re-scaling | Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# # 2a. Relative Ideology Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = rel_index_sqrt), color = NA) +
-#   scale_fill_gradient2(
-#     low = "red",
-#     mid = "white",
-#     high = "blue",
-#     midpoint = 0,
-#     limits = c(-max(abs(map_ready$rel_index_sqrt), na.rm = TRUE),
-#                max(abs(map_ready$rel_index_sqrt), na.rm = TRUE)),
-#     oob = scales::squish,
-#     name = "Conservative - Progressive\n(Relative Index)"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Relative Ideological Orientation of Municipalities",
-#     subtitle = "Red = Progressive, Blue = Conservative (relative to provincial average)",
-#     caption = "Nonlinear re-scaling | Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# # 3a. Absolute Polarization Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = abs_pol_sqrt), color = NA) +
-#   scale_fill_gradient(
-#     low = "white",
-#     high = "darkred",
-#     limits = c(0, max(map_ready$abs_pol_sqrt, na.rm = TRUE)),
-#     oob = scales::squish,
-#     name = "Ideological Polarization\n(Absolute Index)"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Municipal Ideological Polarization (Absolute)",
-#     subtitle = "White = Moderate, Dark Red = Highly Polarized",
-#     caption = "Nonlinear re-scaling | Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# # 4a. Relative Polarization Map
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = rel_pol_sqrt), color = NA) +
-#   scale_fill_gradient(
-#     low = "white",
-#     high = "darkblue",
-#     limits = c(0, max(map_ready$rel_pol_sqrt, na.rm = TRUE)),
-#     oob = scales::squish,
-#     name = "Ideological Polarization\n(Relative to Province)"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Municipal Ideological Polarization (Relative)",
-#     subtitle = "White = Less Polarized than Province, Dark Blue = More Polarized",
-#     caption = "Nonlinear re-scaling | Map: 2019 boundaries"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# ## Binary Ideological Alignment ##
-# 
-# # 1b. Absolute Ideology Map
-# 
-# map_ready <- map_ready %>%
-#   mutate(ideology_side = case_when(
-#     abs_index < 0 ~ "Progressive",
-#     abs_index > 0 ~ "Conservative",
-#     TRUE ~ "Neutral"
-#   ))
-# 
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = ideology_side), color = NA) +
-#   scale_fill_manual(
-#     values = c(
-#       "Progressive" = "red",
-#       "Conservative" = "blue",
-#       "Neutral" = "white"    # Optional, if you want
-#     ),
-#     name = "Ideological Side"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Binary Ideological Orientation of Municipalities",
-#     subtitle = "Red = Progressive, Blue = Conservative",
-#     caption = "Map: 2019 municipalities"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
-# 
-# # 2b. Relative Ideology Map
-# 
-# map_ready <- map_ready %>%
-#   mutate(ideology_side_rel = case_when(
-#     rel_index < 0 ~ "Progressive",
-#     rel_index > 0 ~ "Conservative",
-#     TRUE ~ "Neutral"
-#   ))
-# 
-# ggplot(map_ready) +
-#   geom_sf(aes(fill = ideology_side_rel), color = NA) +
-#   scale_fill_manual(
-#     values = c(
-#       "Progressive" = "red",
-#       "Conservative" = "blue",
-#       "Neutral" = "white"    # Optional, if you want
-#     ),
-#     name = "Relative Ideological Side"
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Binary Ideological Orientation of Municipalities",
-#     subtitle = "Red = Progressive, Blue = Conservative (relative to provincial average)",
-#     caption = "Map: 2019 municipalities"
-#   ) +
-#   theme(
-#     legend.position = "right",
-#     plot.title = element_text(size = 16, face = "bold"),
-#     plot.subtitle = element_text(size = 13),
-#     plot.caption = element_text(size = 9)
-#   )
+
+
