@@ -1,0 +1,65 @@
+############################
+# packages and libraries ####
+
+library(estimatr)
+library(faux)
+library(moments)
+library(funModeling)
+library(margins)
+library(scriptName)
+library(zoo)
+library(data.table)
+library(broom)
+library(stringr)
+library(tidyr)
+library(corrplot)
+library(tidyverse)
+library(plm)
+library(readxl)
+library(haven)
+library(huxtable)
+library(lfe)
+library(ggplot2)
+library(stargazer)
+library(dplyr)
+library(cowplot)
+library(gridGraphics)
+library(gridExtra)
+library(sandwich)
+library(pacman)
+library(ggpmisc)
+library(xtable)
+library(ggpubr)
+
+library(sf)
+library(rnaturalearth)
+library(tmap)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(effects)
+
+library(fuzzyjoin)
+library(stringi)
+library(purrr)
+library(lmtest)
+library(AER)
+library(modelsummary)
+
+
+
+
+############################
+# myfunctions ####
+source(paste0(ADO,"CLEARCOND.R"), echo=TRUE, max=1000) 
+source(paste0(ADO,"CREATEDF.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"DEMOFUNCTION.R"), echo=TRUE, max=1000)  
+source(paste0(ADO,"LOAD.R"), echo=TRUE, max=1000)  
+source(paste0(ADO,"SAVE.R"), echo=TRUE, max=1000) 
+source(paste0(ADO,"IDEOLOGY.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"IDEOLOGY2.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"RENAME.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"RENAME2.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"NORMALIZE.R"), echo=TRUE, max=1000)
+source(paste0(ADO,"SYNTH.R"), echo=TRUE, max=1000)
+
