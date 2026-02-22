@@ -1,17 +1,11 @@
-CLEARCOND()
+# ==========================================================
+# parties.R
+# Creates a mapping between political parties and ideology
+# categories (Conservative, Progressive, Other).
+# Output: party_ideology_df saved to a_microdata/
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"))
 
 party <- c(
   # HISTORICAL
