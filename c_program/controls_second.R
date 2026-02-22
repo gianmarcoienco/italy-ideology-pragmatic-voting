@@ -1,17 +1,11 @@
-CLEARCOND()
+# ==========================================================
+# controls_second.R
+# Prepares municipality-level control variables for the
+# second-stage regression and merges with administrative data.
+# Output: SECOND_STAGE dataset
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"))
 
 # Demographics
 pop <- read.csv("1_population.csv")
@@ -255,5 +249,5 @@ colnames(SECOND_STAGE)[2] <- "COD_COM"
 
 SAVE(dfx = SECOND_STAGE, pattdir = A)
 
-write.csv(SECOND_STAGE, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/SECOND_STAGE.csv", row.names = F)
+write.csv(SECOND_STAGE, file.path(A, "SECOND_STAGE.csv"), row.names = F)
 
