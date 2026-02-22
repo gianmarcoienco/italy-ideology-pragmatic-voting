@@ -103,7 +103,7 @@ for (sd_gamma in prior_sds_gamma) {
 }
 
 # Save results
-write.csv(results, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/BAYESIAN_STAN_EXTENDED.csv", row.names = FALSE)
+write.csv(results, file.path(A, "BAYESIAN_STAN_EXTENDED.csv"), row.names = FALSE)
 message("All models completed and results saved to 'BAYESIAN_STAN_EXTENDED.csv'.")
 
 print(results)
