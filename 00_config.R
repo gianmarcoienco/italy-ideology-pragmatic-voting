@@ -7,7 +7,6 @@
 # Repo root
 HOME <- normalizePath(getwd(), winslash = "/")
 
-# Match your original folder names
 ADO <- file.path(HOME, "00_r_userwritten")
 A   <- file.path(HOME, "a_microdata")
 D   <- file.path(HOME, "d_results")
@@ -26,5 +25,5 @@ if (!requireNamespace("rstudioapi", quietly = TRUE)) {
   rstudioapi <- NULL
 }
 
-# Load packages + your functions
+# Load packages + functions
 source(file.path(ADO, "00_PROGRAMS.R"), echo = FALSE, max = 1000)
