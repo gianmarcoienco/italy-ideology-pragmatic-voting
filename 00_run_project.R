@@ -18,4 +18,5 @@ source(file.path(DO, "controls_second.R"), echo = TRUE, max = 1000)
 source(file.path(DO, "analysis.R"), echo = TRUE, max = 1000)
 
 # Optional extras (do NOT run by default)
-# source(file.path(HOME, "bayesian_stan.R", "bayesian_stan2.R"), echo = TRUE, max = 1000)o=TRUE, max=1000)
+# source(file.path(DO, "bayesian_stan.R"), echo = TRUE, max = 1000)
+# source(file.path(DO, "bayesian_stan2.R"), echo = TRUE, max = 1000)
