@@ -1,17 +1,13 @@
-CLEARCOND()
+# ==========================================================
+# analysis.R
+# Performs IV estimation of the effect of ideological alignment
+# on non-partisan (pragmatic) voting. Includes robustness checks
+# and sensitivity analysis.
+#
+# Note: Requires IV_DATA dataset (not included in repo).
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"))
 
 ## Adjusting ##
 
@@ -159,7 +155,7 @@ dd <- IV_DATA_small %>%
     percentage = (provinces_multiple_years / total_provinces) * 100
   )
 
-write.csv(IV_DATA_small, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/IV_DATA_small.csv", row.names = F)
+write.csv(IV_DATA_small, file.path(A, "IV_DATA_small.csv"), row.names = F)
 
 
 #### NESTED IVs ####
@@ -404,20 +400,20 @@ modelsummary(models,
 
 #### PREDICTION PLOT ####
 
-# Step 1: Generate sequence of ABS_INDEX_NAT values
+#  Generate sequence of ABS_INDEX_NAT values
 abs_seq <- seq(min(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                length.out = 100)
 
-# Step 2: Get average controls
+#  Get average controls
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), \(x) mean(x, na.rm = TRUE)))
 
-# Step 3: Choose a macroarea (e.g., "NORTH")
+#  Choose a macroarea 
 macroarea <- "NORTH"
 
-# Step 4: Create prediction data frame
+# Create prediction data frame
 pred_df <- data.frame(
   ABS_INDEX_NAT = abs_seq,
   ABS_INDEX = abs_seq,  # for compatibility if needed
@@ -430,23 +426,23 @@ pred_df <- data.frame(
   MACROAREA = factor(macroarea, levels = levels(IV_DATA_small$MACROAREA))
 )
 
-# Step 5: Predict using IV model
+# Predict using IV model
 pred_df$predicted <- predict(iv_model_3, newdata = pred_df)
 
-# Step 6: Cluster-robust standard errors
+# Cluster-robust standard errors
 robust_vcov <- vcovCL(iv_model_3, cluster = IV_DATA_small$COD_PROV)
 
-# Step 7: Design matrix for robust prediction intervals
+# Design matrix for robust prediction intervals
 X_mat <- model.matrix(~ ABS_INDEX_NAT + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df)
 
-# Step 8: Compute standard errors and confidence bands
+# Compute standard errors and confidence bands
 se_pred <- sqrt(diag(X_mat %*% robust_vcov %*% t(X_mat)))
 pred_df$conf.low <- pred_df$predicted - 1.96 * se_pred
 pred_df$conf.high <- pred_df$predicted + 1.96 * se_pred
 
-# Step 9: Plot actual data + model predictions
+#  Plot actual data + model predictions
 pred_plot_baseline <- ggplot() +
   # Points
   geom_point(data = IV_DATA_small,
@@ -589,20 +585,20 @@ summary(iv_model_3, diagnostics = TRUE)
 
 #### PREDICTION PLOT (POLARIZATON) ##################
 
-# Step 1: Generate sequence of ABS_POLAR_NAT values
+# Generate sequence of ABS_POLAR_NAT values
 abs_seq <- seq(min(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                length.out = 100)
 
-# Step 2: Get average controls
+# Get average controls
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), \(x) mean(x, na.rm = TRUE)))
 
-# Step 3: Choose a macroarea (e.g., "NORTH")
+# Choose a macroarea
 macroarea <- "NORTH"
 
-# Step 4: Create prediction data frame
+#  Create prediction data frame
 pred_df <- data.frame(
   ABS_POLAR_NAT = abs_seq,
   ABS_POLAR = abs_seq,  # for compatibility if needed
@@ -615,23 +611,23 @@ pred_df <- data.frame(
   MACROAREA = factor(macroarea, levels = levels(IV_DATA_small$MACROAREA))
 )
 
-# Step 5: Predict using IV model
+# Predict using IV model
 pred_df$predicted <- predict(iv_model_3, newdata = pred_df)
 
-# Step 6: Cluster-robust standard errors
+# Cluster-robust standard errors
 robust_vcov <- vcovCL(iv_model_3, cluster = IV_DATA_small$COD_PROV)
 
-# Step 7: Design matrix for robust prediction intervals
+# Design matrix for robust prediction intervals
 X_mat <- model.matrix(~ ABS_POLAR_NAT + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df)
 
-# Step 8: Compute standard errors and confidence bands
+# Compute standard errors and confidence bands
 se_pred <- sqrt(diag(X_mat %*% robust_vcov %*% t(X_mat)))
 pred_df$conf.low <- pred_df$predicted - 1.96 * se_pred
 pred_df$conf.high <- pred_df$predicted + 1.96 * se_pred
 
-# Step 9: Plot actual data + model predictions
+# Plot actual data + model predictions
 pred_plot_polar <- ggplot() +
   # Points
   geom_point(data = IV_DATA_small,
@@ -1172,17 +1168,17 @@ iv_model_interact <- ivreg(
   data = IV_DATA_small
 )
 
-# --- Step 2: Define ABS_INDEX_NAT sequence for prediction ---
+# ---  Define ABS_INDEX_NAT sequence for prediction ---
 abs_seq <- seq(min(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                length.out = 100)
 
-# --- Step 3: Calculate mean control values ---
+# ---  Calculate mean control values ---
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), ~ mean(.x, na.rm = TRUE)))
 
-# --- Step 4: Create prediction data for PROG_LISTA = 0 and 1 ---
+# ---  Create prediction data for PROG_LISTA = 0 and 1 ---
 pred_list <- lapply(c(0, 1), function(p) {
   df <- data.frame(
     ABS_INDEX_NAT = abs_seq,
@@ -1201,24 +1197,24 @@ pred_list <- lapply(c(0, 1), function(p) {
 
 pred_df_interact <- bind_rows(pred_list)
 
-# --- Step 5: Add instrument terms to avoid prediction error ---
+# ---  Add instrument terms to avoid prediction error ---
 pred_df_interact$ABS_INDEX <- pred_df_interact$ABS_INDEX_NAT
 pred_df_interact$ABS_INDEX_PROG <- pred_df_interact$ABS_INDEX * pred_df_interact$PROG_LISTA
 
-# --- Step 6: Build model matrix for robust SE calculation ---
+# ---  Build model matrix for robust SE calculation ---
 X_mat <- model.matrix(~ ABS_INDEX_NAT * PROG_LISTA + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df_interact)
 
 vcov_robust <- vcovCL(iv_model_interact, cluster = IV_DATA_small$COD_PROV)
 
-# --- Step 7: Predict and compute confidence intervals ---
+# ---  Predict and compute confidence intervals ---
 pred_df_interact$predicted <- predict(iv_model_interact, newdata = pred_df_interact)
 se_pred <- sqrt(diag(X_mat %*% vcov_robust %*% t(X_mat)))
 pred_df_interact$conf.low <- pred_df_interact$predicted - 1.96 * se_pred
 pred_df_interact$conf.high <- pred_df_interact$predicted + 1.96 * se_pred
 
-# --- Step 8: Plot the prediction with observed points ---
+# ---  Plot the prediction with observed points ---
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_INDEX_NAT, y = PRAGMATIC_SHARE, color = factor(PROG_LISTA)), alpha = 0.2) +
   geom_ribbon(data = pred_df_interact, aes(x = ABS_INDEX_NAT, ymin = conf.low, ymax = conf.high, fill = GROUP), alpha = 0.2) +
@@ -1235,7 +1231,7 @@ ggplot() +
   theme_minimal()
 
 
-# Compute mean line (optional)
+# Compute mean line 
 mean_val <- mean(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE)
 
 
@@ -1247,7 +1243,7 @@ pred_df_interact$GROUP <- factor(pred_df_interact$GROUP,
                                  levels = c("No Prog List", "Prog List Present"),
                                  labels = c("No Progressive List", "Progressive List Present"))
 
-# Plot with custom colors
+# Plot 
 INTER_PLOT <- ggplot() +
   # Raw data points
   geom_point(data = IV_DATA_small,
@@ -1321,17 +1317,17 @@ iv_model_interact_cons <- ivreg(
   data = IV_DATA_small
 )
 
-# --- Step 2: Define ABS_INDEX_NAT sequence for prediction ---
+# ---  Define ABS_INDEX_NAT sequence for prediction ---
 abs_seq <- seq(min(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                length.out = 100)
 
-# --- Step 3: Calculate mean control values ---
+# ---  Calculate mean control values ---
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), ~ mean(.x, na.rm = TRUE)))
 
-# --- Step 4: Create prediction data for PROG_LISTA = 0 and 1 ---
+# ---  Create prediction data for PROG_LISTA = 0 and 1 ---
 pred_list <- lapply(c(0, 1), function(p) {
   df <- data.frame(
     ABS_INDEX_NAT = abs_seq,
@@ -1350,24 +1346,24 @@ pred_list <- lapply(c(0, 1), function(p) {
 
 pred_df_interact <- bind_rows(pred_list)
 
-# --- Step 5: Add instrument terms to avoid prediction error ---
+# ---  Add instrument terms to avoid prediction error ---
 pred_df_interact$ABS_INDEX <- pred_df_interact$ABS_INDEX_NAT
 pred_df_interact$ABS_INDEX_PROG <- pred_df_interact$ABS_INDEX * pred_df_interact$CONS_LISTA
 
-# --- Step 6: Build model matrix for robust SE calculation ---
+# ---Build model matrix for robust SE calculation ---
 X_mat <- model.matrix(~ ABS_INDEX_NAT * CONS_LISTA + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df_interact)
 
 vcov_robust <- vcovCL(iv_model_interact_cons, cluster = IV_DATA_small$COD_PROV)
 
-# --- Step 7: Predict and compute confidence intervals ---
+# ---  Predict and compute confidence intervals ---
 pred_df_interact$predicted <- predict(iv_model_interact_cons, newdata = pred_df_interact)
 se_pred <- sqrt(diag(X_mat %*% vcov_robust %*% t(X_mat)))
 pred_df_interact$conf.low <- pred_df_interact$predicted - 1.96 * se_pred
 pred_df_interact$conf.high <- pred_df_interact$predicted + 1.96 * se_pred
 
-# --- Step 8: Plot the prediction with observed points ---
+# ---  Plot the prediction with observed points ---
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_INDEX_NAT, y = PRAGMATIC_SHARE, color = factor(CONS_LISTA)), alpha = 0.2) +
   geom_ribbon(data = pred_df_interact, aes(x = ABS_INDEX_NAT, ymin = conf.low, ymax = conf.high, fill = GROUP), alpha = 0.2) +
@@ -1386,7 +1382,7 @@ ggplot() +
 
 ### NON-LINEAR PROG ###
 
-# --- Step 0: Center the ideology variable and compute squared terms ---
+# ---  Center the ideology variable and compute squared terms ---
 IV_DATA_small <- IV_DATA_small %>%
   mutate(
     ABS_INDEX_NAT_C = scale(ABS_INDEX_NAT, scale = FALSE),
@@ -1395,7 +1391,7 @@ IV_DATA_small <- IV_DATA_small %>%
     ABS_INDEX_C_SQ = ABS_INDEX_C^2
   )
 
-# --- Step 1: Fit the quadratic interaction IV model ---
+# ---  Fit the quadratic interaction IV model ---
 iv_model_interact_quad <- ivreg(
   PRAGMATIC_SHARE ~ ABS_INDEX_NAT_C * PROG_LISTA + ABS_INDEX_NAT_C_SQ * PROG_LISTA +
     POP_LOG + INCOME_LOG + FOREIGN_SHARE + TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA |
@@ -1406,17 +1402,17 @@ iv_model_interact_quad <- ivreg(
 
 summary(iv_model_interact_quad)
 
-# --- Step 2: Define a sequence of ABS_INDEX_NAT_C for prediction ---
+# ---  Define a sequence of ABS_INDEX_NAT_C for prediction ---
 abs_seq <- seq(min(IV_DATA_small$ABS_INDEX_NAT_C, na.rm = TRUE),
                max(IV_DATA_small$ABS_INDEX_NAT_C, na.rm = TRUE),
                length.out = 100)
 
-# --- Step 3: Calculate mean control values ---
+# ---  Calculate mean control values ---
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), ~ mean(.x, na.rm = TRUE)))
 
-# --- Step 4: Create prediction dataset for both PROG_LISTA = 0 and 1 ---
+# ---  Create prediction dataset for both PROG_LISTA = 0 and 1 ---
 pred_list <- lapply(c(0, 1), function(p) {
   df <- data.frame(
     ABS_INDEX_NAT_C = abs_seq,
@@ -1436,17 +1432,17 @@ pred_list <- lapply(c(0, 1), function(p) {
 
 pred_df_interact <- bind_rows(pred_list)
 
-# --- Step 5: Add instrument terms to avoid prediction error ---
+# ---  Add instrument terms to avoid prediction error ---
 pred_df_interact$ABS_INDEX_C <- pred_df_interact$ABS_INDEX_NAT_C
 pred_df_interact$ABS_INDEX_C_SQ <- pred_df_interact$ABS_INDEX_C^2
 
-# --- Step 6: Build model matrix for robust SE calculation ---
+# ---  Build model matrix for robust SE calculation ---
 X_mat_quad <- model.matrix(~ ABS_INDEX_NAT_C * PROG_LISTA + ABS_INDEX_NAT_C_SQ * PROG_LISTA +
                              POP_LOG + INCOME_LOG + FOREIGN_SHARE + TERTIARY_EDU +
                              INDEX_OLD + YEAR_DIFF + MACROAREA,
                            data = pred_df_interact)
 
-# --- Step 7: Predict values and compute robust confidence intervals ---
+# ---  Predict values and compute robust confidence intervals ---
 vcov_robust <- vcovCL(iv_model_interact_quad, cluster = IV_DATA_small$COD_PROV)
 
 pred_df_interact$predicted <- predict(iv_model_interact_quad, newdata = pred_df_interact)
@@ -1455,7 +1451,7 @@ se_pred_quad <- sqrt(diag(X_mat_quad %*% vcov_robust %*% t(X_mat_quad)))
 pred_df_interact$conf.low <- pred_df_interact$predicted - 1.96 * se_pred_quad
 pred_df_interact$conf.high <- pred_df_interact$predicted + 1.96 * se_pred_quad
 
-# --- Step 8: Plot the prediction with observed points ---
+# --- Plot the prediction with observed points ---
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_INDEX_NAT_C, y = PRAGMATIC_SHARE, color = factor(PROG_LISTA)), alpha = 0.2) +
   geom_ribbon(data = pred_df_interact, aes(x = ABS_INDEX_NAT_C, ymin = conf.low, ymax = conf.high, fill = GROUP), alpha = 0.2) +
@@ -1490,17 +1486,17 @@ iv_model_interact <- ivreg(
   data = IV_DATA_small
 )
 
-# --- Step 2: Define ABS_INDEX_NAT sequence for prediction ---
+# ---  Define ABS_INDEX_NAT sequence for prediction ---
 abs_seq <- seq(min(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE),
                length.out = 100)
 
-# --- Step 3: Calculate mean control values ---
+# ---  Calculate mean control values ---
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), ~ mean(.x, na.rm = TRUE)))
 
-# --- Step 4: Create prediction data for IDEO_LIST = 0 and 1 ---
+# ---  Create prediction data for IDEO_LIST = 0 and 1 ---
 pred_list <- lapply(c(0, 1), function(p) {
   df <- data.frame(
     ABS_INDEX_NAT = abs_seq,
@@ -1519,24 +1515,24 @@ pred_list <- lapply(c(0, 1), function(p) {
 
 pred_df_interact <- bind_rows(pred_list)
 
-# --- Step 5: Add instrument terms to avoid prediction error ---
+# ---  Add instrument terms to avoid prediction error ---
 pred_df_interact$ABS_INDEX <- pred_df_interact$ABS_INDEX_NAT
 pred_df_interact$ABS_INDEX_PROG <- pred_df_interact$ABS_INDEX * pred_df_interact$IDEO_LIST
 
-# --- Step 6: Build model matrix for robust SE calculation ---
+# ---  Build model matrix for robust SE calculation ---
 X_mat <- model.matrix(~ ABS_INDEX_NAT * IDEO_LIST + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df_interact)
 
 vcov_robust <- vcovCL(iv_model_interact, cluster = IV_DATA_small$COD_PROV)
 
-# --- Step 7: Predict and compute confidence intervals ---
+# ---  Predict and compute confidence intervals ---
 pred_df_interact$predicted <- predict(iv_model_interact, newdata = pred_df_interact)
 se_pred <- sqrt(diag(X_mat %*% vcov_robust %*% t(X_mat)))
 pred_df_interact$conf.low <- pred_df_interact$predicted - 1.96 * se_pred
 pred_df_interact$conf.high <- pred_df_interact$predicted + 1.96 * se_pred
 
-# --- Step 8: Plot the prediction with observed points ---
+# ---  Plot the prediction with observed points ---
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_INDEX_NAT, y = PRAGMATIC_SHARE, color = factor(IDEO_LIST)), alpha = 0.2) +
   geom_ribbon(data = pred_df_interact, aes(x = ABS_INDEX_NAT, ymin = conf.low, ymax = conf.high, fill = GROUP), alpha = 0.2) +
@@ -1553,7 +1549,7 @@ ggplot() +
   theme_minimal()
 
 
-# Compute mean line (optional)
+# Compute mean line 
 mean_val <- mean(IV_DATA_small$ABS_INDEX_NAT, na.rm = TRUE)
 
 
@@ -1565,7 +1561,7 @@ pred_df_interact$GROUP <- factor(pred_df_interact$GROUP,
                                  levels = c("No Prog List", "Prog List Present"),
                                  labels = c("No Progressive List", "Progressive List Present"))
 
-# Plot with custom colors
+# Plot
 interaction_plot <- ggplot() +
   # Raw data points
   geom_point(data = IV_DATA_small,
@@ -1632,20 +1628,20 @@ iv_model_3 <- ivreg(PRAGMATIC_SHARE ~ ABS_POLAR_NAT + POP_LOG + INCOME_LOG + FOR
                       TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                     data = IV_DATA_small)
 
-# Step 1: Generate sequence of ABS_POLAR_NAT values
+#  Generate sequence of ABS_POLAR_NAT values
 abs_seq <- seq(min(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                length.out = 100)
 
-# Step 2: Get average controls
+#  Get average controls
 controls_means <- IV_DATA %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), \(x) mean(x, na.rm = TRUE)))
 
-# Step 3: Choose a macroarea (e.g., "NORTH")
+# Choose a macroarea
 macroarea <- "NORTH"
 
-# Step 4: Create prediction data frame
+#  Create prediction data frame
 pred_df <- data.frame(
   ABS_POLAR_NAT = abs_seq,
   ABS_POLAR = abs_seq,  # for compatibility if needed
@@ -1658,23 +1654,23 @@ pred_df <- data.frame(
   MACROAREA = factor(macroarea, levels = levels(IV_DATA_small$MACROAREA))
 )
 
-# Step 5: Predict using IV model
+# Predict using IV model
 pred_df$predicted <- predict(iv_model_3, newdata = pred_df)
 
-# Step 6: Cluster-robust standard errors
+#  Cluster-robust standard errors
 robust_vcov <- vcovCL(iv_model_3, cluster = IV_DATA_small$COD_PROV)
 
-# Step 7: Design matrix for robust prediction intervals
+#  Design matrix for robust prediction intervals
 X_mat <- model.matrix(~ ABS_POLAR_NAT + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                         TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df)
 
-# Step 8: Compute standard errors and confidence bands
+#  Compute standard errors and confidence bands
 se_pred <- sqrt(diag(X_mat %*% robust_vcov %*% t(X_mat)))
 pred_df$conf.low <- pred_df$predicted - 1.96 * se_pred
 pred_df$conf.high <- pred_df$predicted + 1.96 * se_pred
 
-# Step 9: Plot actual data + model predictions (FIXED)
+# Plot actual data + model predictions (FIXED)
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_POLAR_NAT, y = PRAGMATIC_SHARE), alpha = 0.2) +
   geom_ribbon(data = pred_df, aes(x = ABS_POLAR_NAT, ymin = conf.low, ymax = conf.high), fill = "blue", alpha = 0.2) +
@@ -1691,7 +1687,7 @@ ggplot() +
 
 ### INTERACTION ###
 
-# --- Step 1: Estimate IV model with interaction ---
+# ---  Estimate IV model with interaction ---
 iv_model_admin_interact <- ivreg(
   PRAGMATIC_SHARE ~ ABS_POLAR_NAT * PROG_LISTA + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
     TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA |
@@ -1702,18 +1698,18 @@ iv_model_admin_interact <- ivreg(
 
 summary(iv_model_admin_interact)
 
-# --- Step 2: Generate ABS_POLAR_NAT sequence ---
+# ---  Generate ABS_POLAR_NAT sequence ---
 abs_seq <- seq(min(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                max(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE),
                length.out = 100)
 
 
-# --- Step 3: Get average control values ---
+# ---  Get average control values ---
 controls_means <- IV_DATA_small %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), \(x) mean(x, na.rm = TRUE)))
 
-# --- Step 4: Create prediction data for PROG_LISTA = 0 and 1 ---
+# ---  Create prediction data for PROG_LISTA = 0 and 1 ---
 pred_list <- lapply(c(0, 1), function(p) {
   data.frame(
     ABS_POLAR_NAT = abs_seq,
@@ -1732,7 +1728,7 @@ pred_list <- lapply(c(0, 1), function(p) {
 
 pred_df_interact <- bind_rows(pred_list)
 
-# --- Step 5: Compute robust SE matrix and predictions ---
+# --- Compute robust SE matrix and predictions ---
 vcov_robust <- vcovCL(iv_model_admin_interact, cluster = IV_DATA_small$COD_PROV)
 
 X_mat <- model.matrix(~ ABS_POLAR_NAT * PROG_LISTA + POP_LOG + INCOME_LOG + FOREIGN_SHARE +
@@ -1746,7 +1742,7 @@ se_pred <- sqrt(diag(X_mat %*% vcov_robust %*% t(X_mat)))
 pred_df_interact$conf.low <- pred_df_interact$predicted - 1.96 * se_pred
 pred_df_interact$conf.high <- pred_df_interact$predicted + 1.96 * se_pred
 
-# --- Step 6: Plot ---
+# ---  Plot ---
 ggplot() +
   geom_point(data = IV_DATA_small, aes(x = ABS_POLAR_NAT, y = PRAGMATIC_SHARE, color = factor(PROG_LISTA)), alpha = 0.2) +
   geom_ribbon(data = pred_df_interact, aes(x = ABS_POLAR_NAT, ymin = conf.low, ymax = conf.high, fill = GROUP), alpha = 0.2) +
@@ -1764,7 +1760,7 @@ ggplot() +
 
 
 
-# Compute mean line (optional)
+# Compute mean line 
 mean_val <- mean(IV_DATA_small$ABS_POLAR_NAT, na.rm = TRUE)
 
 
@@ -1776,7 +1772,7 @@ pred_df_interact$GROUP <- factor(pred_df_interact$GROUP,
                                  levels = c("No Prog List", "Prog List Present"),
                                  labels = c("No Progressive List", "Progressive List Present"))
 
-# Plot with custom colors
+# Plot 
 interaction_plot2 <- ggplot() +
   # Raw data points
   geom_point(data = IV_DATA_small,
@@ -1942,11 +1938,11 @@ run_placebo_test <- function(data, outcome, endog, exog_instr, exog_ctrls,
   iv_formula <- as.formula(paste0(outcome, " ~ ", endog, " + ", exog_ctrls, " | ",
                                   exog_instr, " + ", exog_ctrls))
   
-  # Step 1: True model
+  # True model
   true_model <- ivreg(iv_formula, data = data)
   true_coef <- coef(true_model)[endog]
   
-  # Step 2: Simulations
+  #  Simulations
   placebo_coefs <- numeric(n_sim)
   for (i in 1:n_sim) {
     shuffled_data <- data
@@ -1956,10 +1952,10 @@ run_placebo_test <- function(data, outcome, endog, exog_instr, exog_ctrls,
     placebo_coefs[i] <- coef(placebo_model)[endog]
   }
   
-  # Step 3: Empirical p-value
+  #  Empirical p-value
   empirical_p <- mean(abs(placebo_coefs) >= abs(true_coef))
   
-  # Step 4: Plot
+  #  Plot
   placebo_df <- data.frame(placebo_coefs = placebo_coefs)
   p <- ggplot(placebo_df, aes(x = placebo_coefs)) +
     geom_histogram(bins = 40, fill = "gray85", color = "black") +
@@ -2652,19 +2648,19 @@ ggplot(model_data, aes(x = ABS_INDEX_NAT, y = fitted)) +
     y = "Fitted PRAGMATIC_SHARE"
   )
 
-# Step 1: Generate sequence for ABS_INDEX_NAT
+# Generate sequence for ABS_INDEX_NAT
 abs_seq <- seq(
   quantile(IV_DATA_B$ABS_INDEX_NAT, 0.02, na.rm = TRUE),
   quantile(IV_DATA_B$ABS_INDEX_NAT, 0.99, na.rm = TRUE),
   length.out = 100
 )
 
-# Step 2: Compute mean of control variables
+#  Compute mean of control variables
 controls_means <- IV_DATA_B %>%
   summarise(across(c(POP_LOG, INCOME_LOG, FOREIGN_SHARE, TERTIARY_EDU,
                      INDEX_OLD, YEAR_DIFF), ~ mean(.x, na.rm = TRUE)))
 
-# Step 3: Build prediction data frame (with average controls and one macro-area)
+# Build prediction data frame (with average controls and one macro-area)
 pred_df_quad <- data.frame(
   ABS_INDEX_NAT = abs_seq,
   ABS_INDEX_NAT_sq = abs_seq^2,
@@ -2677,30 +2673,30 @@ pred_df_quad <- data.frame(
   MACROAREA = factor("NORTH", levels = levels(IV_DATA_B$MACROAREA))
 )
 
-# Step 4: Add instrument terms (needed for predict.ivreg to work)
+#  Add instrument terms (needed for predict.ivreg to work)
 pred_df_quad$ABS_INDEX <- pred_df_quad$ABS_INDEX_NAT
 pred_df_quad$ABS_INDEX_sq <- pred_df_quad$ABS_INDEX_NAT_sq
 
-# Step 5: Compute model matrix and robust standard errors
+#  Compute model matrix and robust standard errors
 X_mat <- model.matrix(~ ABS_INDEX_NAT + ABS_INDEX_NAT_sq + POP_LOG + INCOME_LOG +
                         FOREIGN_SHARE + TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                       data = pred_df_quad)
 
 vcov_robust <- vcovCL(iv_model_quad, cluster = IV_DATA_B$COD_PROV)
 
-# Step 6: Get predictions and confidence intervals
+#  Get predictions and confidence intervals
 pred_df_quad$predicted <- predict(iv_model_quad, newdata = pred_df_quad)
 se_pred <- sqrt(diag(X_mat %*% vcov_robust %*% t(X_mat)))
 pred_df_quad$conf.low <- pred_df_quad$predicted - 1.96 * se_pred
 pred_df_quad$conf.high <- pred_df_quad$predicted + 1.96 * se_pred
 
-# Step 6.5: Compute peak of the quadratic curve
+#  Compute peak of the quadratic curve
 b1 <- coef(iv_model_quad)["ABS_INDEX_NAT"]
 b2 <- coef(iv_model_quad)["ABS_INDEX_NAT_sq"]
 peak_x <- -b1 / (2 * b2)
 peak_x
 
-# Step 7: Plot with peak indicator
+#  Plot with peak indicator
 pred_iv_quad <- ggplot(pred_df_quad, aes(x = ABS_INDEX_NAT, y = predicted)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "gray75", alpha = 0.4) +
   geom_line(color = "black", size = 1.2) +
