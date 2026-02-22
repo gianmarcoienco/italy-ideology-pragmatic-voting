@@ -1,17 +1,12 @@
-CLEARCOND()
+# ==========================================================
+# administrative.R
+# Processes municipal election data, classifies lists into
+# ideological/pragmatic categories, and constructs measures
+# of local ideological alignment and pragmatic voting.
+# Output: ADMIN_IDEOLOGY dataset
+# ==========================================================
 
-MAINNAME <- current_filename()
-if(is.null(MAINNAME)){
-  MAINNAME <- rstudioapi::getActiveDocumentContext()$path 
-}
-MAINNAME <- sub(".*/|^[^/]*$", "", MAINNAME)
-MAINNAME <- substr(MAINNAME,1,nchar(MAINNAME)-2)
-gc()
-
-################################################################################################################+
-# MAIN PART ####
-
-setwd(A)
+stopifnot(exists("A"), exists("ADO"))
 
 a2018 <- read.csv("2018_A.csv")
 a2019 <- read.csv("2019_A.csv")
@@ -42,7 +37,7 @@ admin_elections <- admin_elections %>% RENAME() %>% NORMALIZE()
 admin_elections <- admin_elections %>%
   mutate(CANDIDATO = paste(NOME, COGNOME))
 
-# Step 1: Classify lists based on names
+# Classify lists based on names
 classify_list_ideology <- function(lista_name) {
   lista_upper <- toupper(lista_name)
   
@@ -60,11 +55,11 @@ classify_list_ideology <- function(lista_name) {
   }
 }
 
-# Step 2: Classify each list
+# Classify each list
 admin_elections <- admin_elections %>%
   mutate(IDEOLOGY = sapply(LISTA, classify_list_ideology))
 
-# Step 3: Identify mixed-motivation municipalities
+# Identify mixed-motivation municipalities
 mixed_comuni <- admin_elections %>%
   group_by(COMUNE) %>%
   summarise(
@@ -75,11 +70,11 @@ mixed_comuni <- admin_elections %>%
   filter(has_ideological & has_pragmatic) %>%
   pull(COMUNE)
 
-# Step 4: Filter data to only those municipalities
+# Filter data to only those municipalities
 admin_filtered <- admin_elections %>%
   filter(COMUNE %in% mixed_comuni)
 
-# Step 5: Compute ideological measures (one row per municipality)
+# Compute ideological measures (one row per municipality)
 ideology_admin <- IDEOLOGY2(admin_filtered)
 
 ideology_admin <- ideology_admin %>%
@@ -125,6 +120,6 @@ ADMIN_IDEOLOGY %>%
 
 SAVE(dfx = ADMIN_IDEOLOGY, pattdir = A)
 
-write.csv(ADMIN_IDEOLOGY, "/Users/gianmarcoienco/Desktop/personal/projects/project_govt/a_microdata/ADMIN_IDEOLOGY.csv", row.names = F)
+write.csv(ADMIN_IDEOLOGY, file.path(A, "ADMIN_IDEOLOGY.csv"), row.names = F)
 
 
