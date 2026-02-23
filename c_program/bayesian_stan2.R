@@ -2,7 +2,6 @@ data <- read.csv("IV_DATA_small.csv")
 
 quantile(data$ABS_POLAR_NAT)
 
-# Identify complete cases across all key variables
 complete_rows <- complete.cases(
   data$PRAGMATIC_SHARE,
   data$ABS_POLAR_NAT,
@@ -16,12 +15,10 @@ complete_rows <- complete.cases(
   data$MACROAREA
 )
 
-# Filter data
 data <- data[complete_rows, ]
 
 # library(cmdstanr)
 
-# Define variables
 y <- data$PRAGMATIC_SHARE
 x <- data$ABS_POLAR_NAT      
 z <- data$ABS_POLAR
@@ -30,15 +27,13 @@ controls <- model.matrix(~ POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                            TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                          data = data)[, -1]  # remove intercept column
 
-# Load compiled model
+# compiled model
 model <- cmdstan_model("iv_dependent_prior2.stan")
 
-# Define prior grids
 prior_sds_gamma <- c(0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
 prior_sds_beta <- c(0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
 prior_corrs <- c(0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 0.95)
 
-# Initialize results
 results <- data.frame()
 
 for (sd_gamma in prior_sds_gamma) {
@@ -96,15 +91,13 @@ for (sd_gamma in prior_sds_gamma) {
         Divergences = sum(diag_summary$divergent__)
       ))
       
-      # Save intermediate progress
-      write.csv(results, "BAYESIAN_STAN_PROGRESS.csv", row.names = FALSE)
+      # write.csv(results, "BAYESIAN_STAN_PROGRESS.csv", row.names = FALSE)
     }
   }
 }
 
-# Save results
-write.csv(results, file.path(A, "BAYESIAN_STAN_EXTENDED.csv"), row.names = FALSE)
-message("All models completed and results saved to 'BAYESIAN_STAN_EXTENDED.csv'.")
+# write.csv(results, file.path(A, "BAYESIAN_STAN_EXTENDED.csv"), row.names = FALSE)
+# message("All models completed and results saved to 'BAYESIAN_STAN_EXTENDED.csv'.")
 
 print(results)
 
@@ -173,7 +166,6 @@ try <- results_imp %>%
   filter(Prior_SD_Beta > 0.25)
 summary(try$Beta_Mean)
 
-# Restricted summary: excluding small values of tau (e.g., ≤ 0.05)
 summary_restricted2 <- results %>%
   filter(Prior_SD_Beta == 0.3) %>%
   group_by(Prior_SD_Gamma, Prior_SD_Beta) %>%
@@ -188,7 +180,6 @@ summary_restricted2 <- results %>%
 
 summary_restricted2
 
-# Restricted summary: excluding small values of tau (e.g., ≤ 0.05)
 summary_restricted <- results %>%
   filter(Prior_SD_Beta > 0.1) %>%
   group_by(Prior_SD_Gamma, Prior_SD_Beta) %>%
@@ -201,7 +192,6 @@ summary_restricted <- results %>%
     .groups = "drop"
   )
 
-# Aggregated comparison
 summary_comparison <- bind_rows(
   summary_all %>% mutate(type = "All"),
   summary_restricted %>% mutate(type = "Restricted")
@@ -223,15 +213,11 @@ print(summary_comparison)
 heat <- ggplot(summary_all, aes(x = factor(Prior_SD_Beta), y = factor(Prior_SD_Gamma), fill = beta_mean_avg)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c(name = "Posterior Mean (β)", option = "D") +
-  
-  # Labels using plotmath expressions
-  labs(
+    labs(
     # title = "Posterior Mean of β Across Prior Settings",
     x = expression("Prior SD on " * beta ~ (tau)),
     y = expression("Prior SD on " * gamma ~ (sigma[gamma]))
   ) +
-  
-  
   theme_minimal(base_family = "serif", base_size = 12) +
   theme(
     panel.grid.major = element_blank(),
@@ -245,14 +231,13 @@ heat <- ggplot(summary_all, aes(x = factor(Prior_SD_Beta), y = factor(Prior_SD_G
 
 print(heat)
 
-ggsave("heat_map.png", plot = heat, width = 8, height = 5)
+# ggsave("heat_map.png", plot = heat, width = 8, height = 5)
 
 ############# PLOT 3D STATIC ######################
 
 # library(plotly)
 # library(reshape2)
 
-# Create the surface plot for τ = 0.01
 plot_tau_001 <- plot_ly(
   x = ~x_vals,
   y = ~y_vals,
@@ -272,8 +257,6 @@ plot_tau_001 <- plot_ly(
     ),
     font = list(family = "serif", size = 12)
   )
-
-# Same for τ = 0.3
 plot_tau_03 <- plot_ly(
   x = ~x_vals,
   y = ~y_vals,
@@ -297,6 +280,5 @@ plot_tau_03 <- plot_ly(
 print(plot_tau_001)
 print(plot_tau_03)
 
-# Save static images of  Plotly plots
-orca(plot_tau_001, file = "beta_tau_001.png")
-orca(plot_tau_03, file = "beta_tau_03.png")
+# orca(plot_tau_001, file = "beta_tau_001.png")
+# orca(plot_tau_03, file = "beta_tau_03.png")
