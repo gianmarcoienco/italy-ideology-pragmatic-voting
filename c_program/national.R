@@ -41,8 +41,6 @@ c2018 %>%
 c2018 <- c2018 %>%
   mutate(VOTI_LISTA = coalesce(VOTI_LISTA, VOTI_CANDIDATO))
 
-# Attribute Ideology
-
 c2018 <- c2018 %>%
   left_join(parties, by = c("LISTA" = "PARTY")) %>%
   rename(IDEOLOGY = IDEOLOGY)
@@ -110,7 +108,6 @@ province_sf <- map_ideology_2018 %>%
 
 ############# MAP FINAL 1 - ABS_INDEX ###########
 
-# # Shared limits and breaks
 # shared_limits <- range(
 #   c(map_ideology_2018$abs_index, map_ideology_2018$net_absolute_ideology),
 #   na.rm = TRUE
@@ -118,7 +115,6 @@ province_sf <- map_ideology_2018 %>%
 # breaks <- c(-1, 0, 1)
 # labels <- c("−1", "0", "+1")
 # 
-# # Define the fill scale as a shared object
 # fill_scale <- scale_fill_gradient2(
 #   low = "red", mid = "white", high = "blue",
 #   midpoint = 0,
@@ -166,17 +162,14 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Combine maps with shared legend
 # combined <- map_hist + map_2018 + plot_layout(guides = "collect") &
 #   theme(legend.position = "right")
 # 
-# # Save
 # ggsave("ideology_comparison_maps4.pdf", plot = combined, width = 11, height = 6, dpi = 300)
 # print(combined)
 
 ############# MAP FINAL 1.1 - ABS_INDEX ###########
 
-# # Shared limits and breaks
 # shared_limits <- range(
 #   c(map_ideology_2018$abs_index, map_ideology_2018$net_absolute_ideology),
 #   na.rm = TRUE
@@ -184,7 +177,6 @@ province_sf <- map_ideology_2018 %>%
 # breaks <- c(-0.5, 0, 0.5)
 # labels <- c("−0.5", "0", "+0.5")
 # 
-# # Define the shared fill scale with a visible and well-formatted guide
 # fill_scale <- scale_fill_gradient2(
 #   low = "red", mid = "white", high = "blue",
 #   midpoint = 0,
@@ -233,18 +225,15 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Combine maps with shared horizontal legend at the bottom
 # combined <- map_hist + map_2018 + plot_layout(guides = "collect") &
 #   theme(legend.position = "bottom")
 # 
-# # Save and print
 # ggsave("ideology_comparison_maps_updated.pdf", plot = combined, width = 11, height = 6, dpi = 300)
 # ggsave("ideology_comparison_maps.png", plot = combined, width = 11, height = 6, dpi = 300)
 # print(combined)
 
 ################ MAP FINAL 1.2 - ABS_INDEX (facet) #######################
 
-# # Combine both variables into one column with labels
 # map_data_combined <- bind_rows(
 #   map_ideology_2018 %>%
 #     mutate(fill_value = abs_index, period = "(a) Historical Ideological Orientation"),
@@ -252,12 +241,10 @@ province_sf <- map_ideology_2018 %>%
 #     mutate(fill_value = net_absolute_ideology, period = "(b) Ideological Orientation (2018)")
 # )
 # 
-# # Shared limits and breaks
 # shared_limits <- range(map_data_combined$fill_value, na.rm = TRUE)
 # breaks <- c(-0.5, 0, 0.5)
 # labels <- c("−0.5", "0", "+0.5")
 # 
-# # Shared fill scale
 # fill_scale <- scale_fill_gradient2(
 #   low = "red", mid = "white", high = "blue",
 #   midpoint = 0,
@@ -266,15 +253,14 @@ province_sf <- map_ideology_2018 %>%
 #   labels = labels,
 #   name = "Absolute Ideology Index",
 #   guide = guide_colorbar(
-#     title.position = "right",  # moves title above the colorbar vertically
+#     title.position = "right",  
 #     title.theme = element_text(size = 10, face = "bold", family = "serif", angle = 90),
 #     label.theme = element_text(size = 8, family = "serif"),
-#     barheight = unit(3, "in"),  # taller bar
-#     barwidth = unit(0.25, "in") # narrower width
+#     barheight = unit(3, "in"),  
+#     barwidth = unit(0.25, "in") 
 #   )
 # )
 # 
-# # Plot with facet
 # combined_map <- ggplot(map_data_combined) +
 #   geom_sf(aes(fill = fill_value, geometry = geometry), color = NA) +
 #   geom_sf(data = province_sf, fill = NA, color = "black", linewidth = 0.1) +
@@ -292,14 +278,12 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Save and print
 # ggsave("ideology_comparison_facet.pdf", plot = combined_map, width = 11, height = 6, dpi = 300)
 # ggsave("ideology_comparison_facet.png", plot = combined_map, width = 11, height = 6, dpi = 300)
 # print(combined_map)
 
 ################ MAP FINAL 1.3 - ABS_INDEX (M5S) #########################
 
-# # Combine both variables into one column with labels
 # map_data_combined <- bind_rows(
 #   map_baseline %>%
 #     mutate(fill_value = net_absolute_ideology, period = "(a) M5S Progressive (2018)"),
@@ -307,12 +291,10 @@ province_sf <- map_ideology_2018 %>%
 #     mutate(fill_value = net_absolute_ideology, period = "(b) M5S Excluded (2018)")
 # )
 # 
-# # Shared limits and breaks
 # shared_limits <- range(map_data_combined$fill_value, na.rm = TRUE)
 # breaks <- c(-0.5, 0, 0.5)
 # labels <- c("−0.5", "0", "+0.5")
 # 
-# # Shared fill scale
 # fill_scale <- scale_fill_gradient2(
 #   low = "red", mid = "white", high = "blue",
 #   midpoint = 0,
@@ -321,15 +303,14 @@ province_sf <- map_ideology_2018 %>%
 #   labels = labels,
 #   name = "Absolute Ideology Index",
 #   guide = guide_colorbar(
-#     title.position = "right",  # moves title above the colorbar vertically
+#     title.position = "right",  
 #     title.theme = element_text(size = 10, face = "bold", family = "serif", angle = 90),
 #     label.theme = element_text(size = 8, family = "serif"),
-#     barheight = unit(3, "in"),  # taller bar
-#     barwidth = unit(0.25, "in") # narrower width
+#     barheight = unit(3, "in"),  
+#     barwidth = unit(0.25, "in") 
 #   )
 # )
 # 
-# # Plot with facet
 # combined_map <- ggplot(map_data_combined) +
 #   geom_sf(aes(fill = fill_value, geometry = geometry), color = NA) +
 #   geom_sf(data = province_sf, fill = NA, color = "black", linewidth = 0.1) +
@@ -347,7 +328,6 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Save and print
 # ggsave("ideology_comparison_facet_M5S.pdf", plot = combined_map, width = 11, height = 6, dpi = 300)
 # ggsave("ideology_comparison_facet_M5S.png", plot = combined_map, width = 11, height = 6, dpi = 300)
 # print(combined_map)
@@ -355,7 +335,6 @@ province_sf <- map_ideology_2018 %>%
 
 ############ MAP FINAL 2 - POL_INDEX (facet) ###########
 
-# # Combine data first with a shared fill column
 # map_data_combined <- bind_rows(
 #   map_ideology_2018 %>% mutate(fill_value = abs_polarization_index, period = "(a) Historical Ideological Polarization"),
 #   map_ideology_2018 %>% mutate(fill_value = abs_polarization, period = "(b) Ideological Polarization (2018)")
@@ -392,14 +371,12 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Save and print
 # ggsave("polarization_comparison_facet.pdf", plot = final_polar, width = 11, height = 6, dpi = 300)
 # ggsave("polarization_comparison_facet.png", plot = final_polar, width = 11, height = 6, dpi = 300)
 # print(final_polar)
 
 ############ MAP FINAL 2.1 - POL_INDEX (M5S) ######################
 
-# # Combine data first with a shared fill column
 # map_data_combined <- bind_rows(
 #   map_baseline %>% mutate(fill_value = abs_polarization, period = "(a) M5S Progressive (2018)"),
 #   map_ideology_2018 %>% mutate(fill_value = abs_polarization, period = "(b) M5S Excluded (2018)")
@@ -436,7 +413,6 @@ province_sf <- map_ideology_2018 %>%
 #     panel.grid = element_blank()
 #   )
 # 
-# # Save and print
 # ggsave("polarization_comparison_facet_M5S.pdf", plot = final_polar, width = 11, height = 6, dpi = 300)
 # ggsave("polarization_comparison_facet_M5S.png", plot = final_polar, width = 11, height = 6, dpi = 300)
 # print(final_polar)
