@@ -1,19 +1,18 @@
 data {
-  int<lower=1> N;                 // number of observations
-  int<lower=1> K;                 // number of control variables
-  vector[N] y;                    // outcome: pragmatic vote
-  vector[N] x;                    // endogenous regressor (beta)
-  vector[N] z;                    // instrument (gamma)
-  matrix[N, K] controls;          // control variables
+  int<lower=1> N;                 
+  int<lower=1> K;                
+  vector[N] y;                  
+  vector[N] x;                    
+  vector[N] z;                  
+  matrix[N, K] controls; 
 
-  real<lower=1e-6> prior_sd;              // prior SD for both beta and gamma
-  real<lower=-0.99, upper=0.99> prior_corr; // prior correlation
+  real<lower=1e-6> prior_sd;            
+  real<lower=-0.99, upper=0.99> prior_corr; 
 }
 
 transformed data {
   matrix[2, 2] prior_cov;
 
-  // Build covariance matrix from SD and correlation
   prior_cov[1,1] = square(prior_sd);
   prior_cov[2,2] = square(prior_sd);
   prior_cov[1,2] = prior_corr * square(prior_sd);
@@ -21,17 +20,15 @@ transformed data {
 }
 
 parameters {
-  vector[K] alpha;                // control coefficients
-  vector[2] theta;                // theta[1] = gamma (on z), theta[2] = beta (on x)
-  real<lower=0> sigma;            // residual standard deviation
+  vector[K] alpha;               
+  vector[2] theta;                
+  real<lower=0> sigma;           
 }
 
 model {
-  // Priors
   alpha ~ normal(0, 1);
   theta ~ multi_normal([0, 0]', prior_cov);
 
-  // Likelihood
   y ~ normal(controls * alpha + z * theta[1] + x * theta[2], sigma);
 }
 
