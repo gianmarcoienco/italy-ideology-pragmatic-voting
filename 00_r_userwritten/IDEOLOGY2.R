@@ -2,7 +2,6 @@ IDEOLOGY2 <- function(data) {
   library(dplyr)
   library(tidyr)
   
-  # Step 0: Clean and standardize
   data_clean <- data %>%
     filter(!is.na(VOTI_LISTA), !is.na(VOTANTI), VOTANTI > 0, !is.na(IDEOLOGY)) %>%
     mutate(
@@ -10,7 +9,6 @@ IDEOLOGY2 <- function(data) {
       PROVINCIA = toupper(PROVINCIA)
     )
   
-  # Step 1: Aggregate votes by municipality and ideology
   vote_by_comune <- data_clean %>%
     group_by(COMUNE, IDEOLOGY) %>%
     summarise(votes = sum(VOTI_LISTA, na.rm = TRUE), .groups = "drop")
@@ -23,8 +21,7 @@ IDEOLOGY2 <- function(data) {
     left_join(total_votes_by_comune, by = "COMUNE") %>%
     mutate(share = votes / total) %>%
     select(COMUNE, IDEOLOGY, share)
-  
-  # Step 2: Compute absolute vote shares and indices
+
   absolute <- vote_shares %>%
     pivot_wider(names_from = IDEOLOGY, values_from = share, values_fill = 0) %>%
     rename(
@@ -39,7 +36,6 @@ IDEOLOGY2 <- function(data) {
       CONSERVATIVE_PRESENT = as.integer(abs_conservative > 0)
     )
   
-  # Step 3: Province-level shares
   province_mean <- data_clean %>%
     group_by(PROVINCIA, IDEOLOGY) %>%
     summarise(votes = sum(VOTI_LISTA, na.rm = TRUE), .groups = "drop") %>%
@@ -54,7 +50,6 @@ IDEOLOGY2 <- function(data) {
     ) %>%
     mutate(prov_net_ideology = prov_conservative - prov_progressive)
   
-  # Step 4: Merge back and compute all indices
   final <- absolute %>%
     left_join(data_clean %>% select(COMUNE, PROVINCIA) %>% distinct(), by = "COMUNE") %>%
     left_join(province_mean, by = "PROVINCIA") %>%
