@@ -1,6 +1,5 @@
 SYNTH <- function(reference_df, ideology_df, fill_prefixes = c("rel_", "net_", "abs_", "rel_left_", "rel_right_")) {
   
-  # Ensure synthetic tracking columns exist
   if (!"synthetic_origin" %in% names(ideology_df)) {
     ideology_df$synthetic_origin <- NA_character_
     ideology_df$synthetic_note <- NA_character_
@@ -11,11 +10,9 @@ SYNTH <- function(reference_df, ideology_df, fill_prefixes = c("rel_", "net_", "
     new <- reference_df$new_comune[i]
     note <- reference_df$note[i]
     
-    # Get source row
     source_row <- ideology_df %>% filter(COMUNE == orig)
     if (nrow(source_row) == 0) next
     
-    # Columns to fill (matching any of the prefixes)
     cols_to_fill <- names(ideology_df)[sapply(names(ideology_df), function(x) any(startsWith(x, fill_prefixes)))]
     
     if (new %in% ideology_df$COMUNE) {
