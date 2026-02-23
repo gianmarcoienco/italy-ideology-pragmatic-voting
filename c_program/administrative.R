@@ -41,7 +41,7 @@ admin_elections <- admin_elections %>%
 classify_list_ideology <- function(lista_name) {
   lista_upper <- toupper(lista_name)
   
-  # Exclude false positives
+  # Exclude false positives !!
   if (grepl("\\bCOLLI VERDI\\b", lista_upper)) {
     return("Pragmatic")
   }
@@ -55,11 +55,9 @@ classify_list_ideology <- function(lista_name) {
   }
 }
 
-# Classify each list
 admin_elections <- admin_elections %>%
   mutate(IDEOLOGY = sapply(LISTA, classify_list_ideology))
 
-# Identify mixed-motivation municipalities
 mixed_comuni <- admin_elections %>%
   group_by(COMUNE) %>%
   summarise(
@@ -70,11 +68,9 @@ mixed_comuni <- admin_elections %>%
   filter(has_ideological & has_pragmatic) %>%
   pull(COMUNE)
 
-# Filter data to only those municipalities
 admin_filtered <- admin_elections %>%
   filter(COMUNE %in% mixed_comuni)
 
-# Compute ideological measures (one row per municipality)
 ideology_admin <- IDEOLOGY2(admin_filtered)
 
 ideology_admin <- ideology_admin %>%
