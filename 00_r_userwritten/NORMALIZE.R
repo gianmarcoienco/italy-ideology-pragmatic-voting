@@ -2,7 +2,6 @@ NORMALIZE <- function(df) {
   df %>%
     mutate(
       COMUNE = case_when(
-        # Normalize apostrophe variant
         COMUNE %in% c("GRESSONEY-LA-TRINITE'") ~ "GRESSONEY-LA-TRINITE",
         COMUNE %in% c("AGLIE'") ~ "AGLIE",
         COMUNE %in% c("ALI'") ~ "ALI",
@@ -120,7 +119,6 @@ NORMALIZE <- function(df) {
         COMUNE %in% c("MERI'") ~ "MERI",
         COMUNE %in% c("RODI' MILICI") ~ "RODI MILICI",
         
-        # These appear duplicated despite same name, force consistency by removing trailing/leading spaces etc.
         str_trim(COMUNE) == "MONTECCHIO" ~ "MONTECCHIO",
         str_trim(COMUNE) == "SAN MARCELLO" ~ "SAN MARCELLO",
         str_trim(COMUNE) == "SANT'ANGELO IN VADO" ~ "SANT'ANGELO IN VADO",
