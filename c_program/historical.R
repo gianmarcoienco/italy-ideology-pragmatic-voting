@@ -103,7 +103,6 @@ ideology_1972 %>%
 
 ### 1974 DIVORCE ###
 
-# 1: Collapse and clean
 r1974_collapsed <- r1974 %>%
   mutate(
     COMUNE = toupper(COMUNE),
@@ -120,7 +119,6 @@ r1974_collapsed <- r1974 %>%
     .groups = "drop"
   )
 
-# 2: Clean and compute municipality-level ideology
 r1974_clean <- r1974_collapsed %>%
   filter(!is.na(SI), !is.na(NO), (SI + NO) > 0) %>%
   mutate(
@@ -129,7 +127,6 @@ r1974_clean <- r1974_collapsed %>%
     abs_polarization_1974 = abs(SI - NO) / valid_votes  # Distance from 50-50
   )
 
-# 3: Compute province-level ideology and polarization
 province_1974 <- r1974_clean %>%
   group_by(PROVINCIA) %>%
   summarise(
@@ -141,7 +138,6 @@ province_1974 <- r1974_clean %>%
     .groups = "drop"
   )
 
-# 4: Compute relative measures
 r1974_processed <- r1974_clean %>%
   left_join(province_1974, by = "PROVINCIA") %>%
   mutate(
@@ -157,7 +153,6 @@ r1974_processed <- r1974_clean %>%
 
 ### 1981 ABORTION ###
 
-# 1: Collapse and clean
 r1981_collapsed <- r1981 %>%
   filter(NUM_REFERENDUM == 5) %>%  # 5 = Abortion Referendum
   mutate(
@@ -175,7 +170,6 @@ r1981_collapsed <- r1981 %>%
     .groups = "drop"
   )
 
-# 2: Compute municipality-level ideology
 r1981_clean <- r1981_collapsed %>%
   filter(!is.na(SI), !is.na(NO), (SI + NO) > 0) %>%
   mutate(
@@ -184,7 +178,6 @@ r1981_clean <- r1981_collapsed %>%
     abs_polarization_1981 = abs(SI - NO) / valid_votes
   )
 
-# 3: Compute province-level averages
 province_1981 <- r1981_clean %>%
   group_by(PROVINCIA) %>%
   summarise(
@@ -196,7 +189,6 @@ province_1981 <- r1981_clean %>%
     .groups = "drop"
   )
 
-# 4: Merge and compute relative values
 r1981_processed <- r1981_clean %>%
   left_join(province_1981, by = "PROVINCIA") %>%
   mutate(
@@ -209,7 +201,6 @@ r1981_processed <- r1981_clean %>%
     abs_polarization_1981, rel_polarization_1981
   )
 
-# Duplicate check
 ideology_1948 %>% count(COMUNE) %>% filter(n > 1)
 ideology_1953 %>% count(COMUNE) %>% filter(n > 1)
 ideology_1958 %>% count(COMUNE) %>% filter(n > 1)
@@ -422,14 +413,12 @@ synthetic_municipalities <- tibble::tibble(
 )
 )
 
-# Extract the year from the 'note' field
 synthetic_municipalities2 <- synthetic_municipalities %>%
   mutate(
-    split_year = stringr::str_extract(note, "\\d{4}"), # Extract 4-digit year
-    split_year = as.numeric(split_year)                # Convert to numeric
+    split_year = stringr::str_extract(note, "\\d{4}"), 
+    split_year = as.numeric(split_year)               
   )
 
-# Filter only those splitted after or during 1958
 synthetic_municipalities2 <- synthetic_municipalities2 %>%
   filter(split_year >= 1958)
 
@@ -515,7 +504,6 @@ italy_muni_2019 %>%
   count(COMUNE) %>%
   filter(n > 1)
 
-# Group and merge renamed municipalities
 map_merged <- italy_muni_2019 %>%
   group_by(COMUNE) %>%
   summarise(
