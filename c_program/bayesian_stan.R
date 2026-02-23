@@ -2,7 +2,6 @@ data <- read.csv("IV_DATA_small.csv")
 
 quantile(data$ABS_POLAR_NAT)
 
-# Identify complete cases across all key variables
 complete_rows <- complete.cases(
   data$PRAGMATIC_SHARE,
   data$ABS_POLAR_NAT,
@@ -16,12 +15,10 @@ complete_rows <- complete.cases(
   data$MACROAREA
 )
 
-# Filter data
 data <- data[complete_rows, ]
 
 # library(cmdstanr)
 
-# Define variables
 y <- data$PRAGMATIC_SHARE
 x <- data$ABS_POLAR_NAT      
 z <- data$ABS_POLAR
@@ -30,17 +27,14 @@ controls <- model.matrix(~ POP_LOG + INCOME_LOG + FOREIGN_SHARE +
                            TERTIARY_EDU + INDEX_OLD + YEAR_DIFF + MACROAREA,
                          data = data)[, -1]  # remove intercept column
 
-# Load compiled model
+# compiled model
 model <- cmdstan_model("iv_dependent_prior.stan")
 
-# Define prior grid
 prior_sds <- c(0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
 prior_corrs <- c(0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 0.95)
 
-# Initialize results
 results <- data.frame()
 
-# Loop over prior SDs and correlations
 for (sd in prior_sds) {
   for (rho in prior_corrs) {
     if (sd < 1e-6) next  # skip invalid SDs
@@ -67,7 +61,6 @@ for (sd in prior_sds) {
       refresh = 0
     )
     
-    # Check for divergent transitions
     diag_summary <- fit$diagnostic_summary()
     if (any(diag_summary$divergent__ > 0)) {
       warning(sprintf("WARNING: Divergences detected at SD = %.3f, Corr = %.2f", sd, rho))
@@ -90,14 +83,12 @@ for (sd in prior_sds) {
       Divergences = sum(diag_summary$divergent__)
     ))
     
-    # Optional: Uncomment to pause between runs
     # readline(prompt = "Press [Enter] to continue to next model...")
   }
 }
 
-# Save output to file
-write.csv(results, file.path(A, "BAYESIAN_STAN.csv"), row.names = FALSE)
-message("All models completed and results saved to 'BAYESIAN_STAN.csv'.")
+# write.csv(results, file.path(A, "BAYESIAN_STAN.csv"), row.names = FALSE)
+# message("All models completed and results saved to 'BAYESIAN_STAN.csv'.")
 
 print(results)
 
@@ -108,26 +99,17 @@ try2 <- results_imp2 %>%
 summary(try2$Beta_Mean)
 
 plot1 <- ggplot(results, aes(x = Prior_SD, y = Beta_Mean, color = factor(Prior_Corr), fill = factor(Prior_Corr))) +
-  # 95% Credible interval ribbons
   geom_ribbon(aes(ymin = Beta_Lower, ymax = Beta_Upper), alpha = 0.2, color = NA) +
-  
-  # Posterior mean lines
-  geom_line(linewidth = 1.2) +
-  
-  # Vertical line to mark robustness threshold
-  geom_vline(xintercept = 0.3, linetype = "dotted", color = "gray40") +
+    geom_line(linewidth = 1.2) +
+    geom_vline(xintercept = 0.3, linetype = "dotted", color = "gray40") +
   annotate("text", x = 0.28, y = min(results$Beta_Lower, na.rm = TRUE) + 0.02,
            label = "Stabilization threshold", angle = 90, hjust = 0, vjust = -0.2,
            size = 3.5, family = "serif", color = "gray20") +
-  
-  # Horizontal line for zero effect
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
   
   annotate("text", x = max(results$Prior_SD) * 0.95, y = 0.02, 
            label = "Zero effect", family = "serif", size = 4, color = "gray50") +
-  
-  # Axes and legend
-  labs(
+    labs(
     # title = "Bayesian Sensitivity of Treatment Effect (β)",
     # subtitle = "By prior SD and structural correlation with γ",
     x = "Prior SD on γ (Direct Effect of Instrument)",
@@ -167,23 +149,18 @@ plot_dep_df <- results %>%
     )
   )
 
-# Plot
+
 bayesian_dep_plot <- ggplot(plot_dep_df, aes(x = Prior_SD, y = Mean)) +
-  # 95% credible interval
   geom_ribbon(aes(ymin = Lower, ymax = Upper, group = Prior_Corr), fill = "gray80", alpha = 0.5) +
   geom_line(aes(group = Prior_Corr), color = "gray10", linewidth = 1.2) +
-  
-  # Zero effect reference line
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
   annotate("text", x = max(plot_dep_df$Prior_SD)*0.9, y = 0.02,
            label = "Zero effect", size = 4, family = "serif", color = "gray50") +
   
   geom_vline(xintercept = 0.3, linetype = "dotted", color = "gray50") +
 annotate("text", x = 0.32, y = -0.25, label = "Robustness threshold", 
          angle = 90, hjust = 0, size = 3, family = "serif", color = "gray50") +
-  
-  # Facet and styling
-  facet_wrap(~Parameter, scales = "free_y", nrow = 2) +
+    facet_wrap(~Parameter, scales = "free_y", nrow = 2) +
   labs(
     # title = "Bayesian Sensitivity Analysis with Dependent Priors",
     x = "Prior SD on γ (Direct Effect of Instrument)",
@@ -203,7 +180,7 @@ annotate("text", x = 0.32, y = -0.25, label = "Robustness threshold",
 
 print(bayesian_dep_plot)
 
-ggsave("beta_sensitivity_plot.pdf", plot = plot1, width = 8, height = 5)
-ggsave("bayesian_dep_plot.pdf", plot = bayesian_dep_plot, width = 8, height = 5)
+# ggsave("beta_sensitivity_plot.pdf", plot = plot1, width = 8, height = 5)
+# ggsave("bayesian_dep_plot.pdf", plot = bayesian_dep_plot, width = 8, height = 5)
 
 
