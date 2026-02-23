@@ -40,7 +40,7 @@ The code documents the full data construction process, including:
 - classification of political parties into ideological categories
 - construction of historical and contemporary ideology indices
 
-Due to research considerations, the final dataset is not publicly shared.
+Due to data and research constraints, the final dataset is not publicly shared.
 
 ## How to run
 
